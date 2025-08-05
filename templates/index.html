@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Bookmark Extractor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📖 PDF Bookmark Extractor</h1>
+            <p>macOSのプレビュー.appで追加されたブックマーク情報を抽出します</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-content">
+                        <div class="upload-icon">📄</div>
+                        <h3>PDFファイルを選択またはドラッグ&ドロップ</h3>
+                        <p>ファイルサイズ: 最大50MB</p>
+                        <input type="file" id="fileInput" accept=".pdf" style="display: none;">
+                        <button class="select-btn" onclick="document.getElementById('fileInput').click()">
+                            ファイルを選択
+                        </button>
+                    </div>
+                </div>
+
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <div class="file-details">
+                        <span class="file-name" id="fileName"></span>
+                        <span class="file-size" id="fileSize"></span>
+                    </div>
+                    <button class="extract-btn" id="extractBtn" onclick="extractBookmarks()">
+                        🔍 ブックマークを抽出
+                    </button>
+                </div>
+
+                <div class="loading" id="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>ブックマーク情報を抽出中...</p>
+                </div>
+            </div>
+
+            <div class="result-section" id="resultSection" style="display: none;">
+                <div class="result-content">
+                    <h3>📋 抽出結果</h3>
+                    <div class="result-info">
+                        <div class="file-info-display">
+                            <strong>ファイル:</strong> <span id="resultFileName"></span>
+                        </div>
+                        <div class="bookmark-info">
+                            <div id="bookmarkResult"></div>
+                        </div>
+                    </div>
+                    <button class="new-file-btn" onclick="resetForm()">
+                        📁 新しいファイルを選択
+                    </button>
+                </div>
+            </div>
+
+            <div class="error-section" id="errorSection" style="display: none;">
+                <div class="error-content">
+                    <h3>❌ エラー</h3>
+                    <p id="errorMessage"></p>
+                    <button class="retry-btn" onclick="resetForm()">
+                        🔄 再試行
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>PDF Bookmark Extractor Tool</p>
+        </footer>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const loading = document.getElementById('loading');
+        const resultSection = document.getElementById('resultSection');
+        const errorSection = document.getElementById('errorSection');
+
+        let selectedFile = null;
+
+        // ドラッグ&ドロップ機能
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // ファイル選択
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            // ファイル形式チェック
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                showError('PDFファイルのみアップロード可能です');
+                return;
+            }
+
+            // ファイルサイズチェック（50MB）
+            if (file.size > 50 * 1024 * 1024) {
+                showError('ファイルサイズが大きすぎます（最大50MB）');
+                return;
+            }
+
+            selectedFile = file;
+            showFileInfo(file);
+        }
+
+        function showFileInfo(file) {
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            
+            uploadArea.style.display = 'none';
+            fileInfo.style.display = 'block';
+            resultSection.style.display = 'none';
+            errorSection.style.display = 'none';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function extractBookmarks() {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            // UI状態を更新
+            fileInfo.style.display = 'none';
+            loading.style.display = 'block';
+            resultSection.style.display = 'none';
+            errorSection.style.display = 'none';
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.success) {
+                    showResult(data.filename, data.result);
+                } else {
+                    showError(data.error || 'ブックマーク抽出中にエラーが発生しました');
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                showError('ネットワークエラーが発生しました');
+            });
+        }
+
+        function showResult(filename, result) {
+            document.getElementById('resultFileName').textContent = filename;
+            
+            // 結果を解析して表示
+            const lines = result.split('\n');
+            let bookmarkInfo = '';
+            
+            for (const line of lines) {
+                if (line.includes('ブックマークが設定されているページ数:')) {
+                    const pageCount = line.split(':')[1].trim();
+                    bookmarkInfo += `<div class="page-count">📊 ${pageCount}</div>`;
+                } else if (line.includes('ブックマークページ:')) {
+                    const pages = line.split(':')[1].trim();
+                    if (pages) {
+                        const pageList = pages.split(' ').map(page => `<span class="page-number">${page}</span>`).join(' ');
+                        bookmarkInfo += `<div class="page-list">📄 ${pageList}</div>`;
+                    } else {
+                        bookmarkInfo += '<div class="no-bookmarks">ブックマークは設定されていません</div>';
+                    }
+                }
+            }
+            
+            if (!bookmarkInfo) {
+                bookmarkInfo = '<div class="no-bookmarks">ブックマーク情報が見つかりませんでした</div>';
+            }
+            
+            document.getElementById('bookmarkResult').innerHTML = bookmarkInfo;
+            resultSection.style.display = 'block';
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            errorSection.style.display = 'block';
+        }
+
+        function resetForm() {
+            selectedFile = null;
+            fileInput.value = '';
+            
+            uploadArea.style.display = 'block';
+            fileInfo.style.display = 'none';
+            loading.style.display = 'none';
+            resultSection.style.display = 'none';
+            errorSection.style.display = 'none';
+            
+            uploadArea.classList.remove('dragover');
+        }
+    </script>
+</body>
+</html> 

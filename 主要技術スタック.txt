@@ -1,0 +1,47 @@
+PDF Bookmark Extractor - 主要技術スタック
+========================================
+
+【言語】
+■ プログラミング言語
+- Python 3.11 (Anaconda環境)
+- Bash (シェルスクリプト)
+
+■ マークアップ・スタイル言語
+- HTML5
+- CSS3
+
+■ スクリプト言語
+- JavaScript (ES6+)
+
+【ツール】
+■ PDF処理ツール
+- qpdf (PDF解析・変換)
+
+■ データ処理ツール
+- jq (JSON処理)
+
+■ 開発ツール
+- Homebrew (パッケージマネージャー)
+- Cursor (AI支援エディタ)
+- zsh (シェル)
+
+■ 実行環境
+- macOS 23.1.0
+
+【ライブラリ・フレームワーク】
+■ Webフレームワーク
+- Flask 3.1.1
+
+■ ユーティリティライブラリ
+- Werkzeug 3.1.3 (WSGIユーティリティ)
+
+■ Python標準ライブラリ
+- subprocess (シェルコマンド実行)
+- os (ファイルシステム操作)
+- uuid (ユニークID生成)
+- zlib (圧縮データ処理)
+
+【主要機能】
+- PDFブックマーク抽出 (qpdf + jq + Python zlib)
+- Webアプリケーション (Flask + HTML/CSS/JS)
+- ファイルアップロード (ドラッグ&ドロップ対応) 

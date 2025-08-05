@@ -1,0 +1,108 @@
+PDF Bookmark Extractor - 技術使用箇所
+====================================
+
+【qpdf】
+■ 使用箇所: extract_bookmarks.sh
+■ 目的: PDFファイルの内部構造解析
+■ 具体的な使用:
+  - qpdf --json: PDFの構造をJSON形式で出力
+  - qpdf --show-object --raw-stream-data: メタデータオブジェクトの生データ抽出
+
+【jq】
+■ 使用箇所: extract_bookmarks.sh
+■ 目的: qpdfのJSON出力からメタデータオブジェクトを抽出
+■ 具体的な使用:
+  - jq -r '.qpdf[1] | to_entries[] | select(.value.stream.dict."/Type" == "/Metadata") | .key'
+
+【Flask】
+■ 使用箇所: app.py
+■ 目的: Webアプリケーションのフレームワーク
+■ 具体的な使用:
+  - @app.route('/'): メインページのルーティング
+  - @app.route('/upload'): ファイルアップロード処理
+  - render_template(): HTMLテンプレートの表示
+
+【Werkzeug】
+■ 使用箇所: app.py
+■ 目的: ファイルアップロード処理とセキュリティ
+■ 具体的な使用:
+  - secure_filename(): 安全なファイル名生成
+
+【Python標準ライブラリ】
+■ subprocess
+  - 使用箇所: app.py
+  - 目的: シェルスクリプト(extract_bookmarks.sh)の実行
+
+■ os
+  - 使用箇所: app.py
+  - 目的: ファイルシステム操作、ディレクトリ作成
+
+■ uuid
+  - 使用箇所: app.py
+  - 目的: ユニークなファイル名生成
+
+■ zlib
+  - 使用箇所: extract_bookmarks.sh (Python3 -c 内)
+  - 目的: メタデータの圧縮データ解凍
+
+【HTML5】
+■ 使用箇所: templates/index.html
+■ 目的: Webページの構造
+■ 具体的な使用:
+  - ファイルアップロードフォーム
+  - ドラッグ&ドロップエリア
+
+【CSS3】
+■ 使用箇所: static/style.css
+■ 目的: Webページのスタイリング
+■ 具体的な使用:
+  - レスポンシブデザイン
+  - アニメーション効果
+  - モダンなUIデザイン
+
+【JavaScript】
+■ 使用箇所: templates/index.html (scriptタグ内)
+■ 目的: クライアントサイドのインタラクション
+■ 具体的な使用:
+  - ドラッグ&ドロップ機能
+  - ファイルアップロード処理
+  - AJAX通信
+
+【Bash】
+■ 使用箇所: extract_bookmarks.sh
+■ 目的: シェルスクリプトの実行環境
+■ 具体的な使用:
+  - 条件分岐、ループ処理
+  - コマンド連携
+
+【シェルコマンド群】
+■ mktemp: 一時ファイル作成
+■ sed: テキスト置換
+■ tr: 文字変換
+■ sort: ソート処理
+■ wc: 文字数・行数カウント
+■ tail: ファイル末尾取得
+■ 使用箇所: extract_bookmarks.sh
+
+【ファイル間の連携】
+■ app.py → extract_bookmarks.sh
+  - subprocess.run()でシェルスクリプトを実行
+  - アップロードされたPDFファイルを引数として渡す
+
+■ extract_bookmarks.sh → Python3
+  - python3 -c でzlib解凍とXML解析を実行
+  - 一時ファイル経由でデータを渡す
+
+■ templates/index.html → app.py
+  - fetch()でAJAX通信
+  - FormDataでファイルをアップロード
+
+【データフロー】
+1. ユーザーがPDFファイルをアップロード (HTML/JS)
+2. Flaskがファイルを受け取り (app.py)
+3. シェルスクリプトを実行 (subprocess)
+4. qpdfでPDF解析 (extract_bookmarks.sh)
+5. jqでJSON処理 (extract_bookmarks.sh)
+6. Python3でzlib解凍 (extract_bookmarks.sh)
+7. 結果をFlaskに返す (app.py)
+8. 結果をブラウザに表示 (HTML/JS) 
