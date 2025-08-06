@@ -5,12 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Bookmark Extractor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📖 PDF Bookmark Extractor</h1>
-            <p>macOSのプレビュー.appで追加されたブックマーク情報を抽出します</p>
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <div class="logo-icon">📖</div>
+                    <div class="logo-text">
+                        <h1>PDF Bookmark Extractor</h1>
+                        <p>macOS Preview Bookmarks</p>
+                    </div>
+                </a>
+                
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <nav id="nav">
+                    <a href="/">ホーム</a>
+                    <a href="#about">概要</a>
+                    <a href="#help">ヘルプ</a>
+                    <a href="#contact">お問い合わせ</a>
+                </nav>
+            </div>
         </header>
 
         <main>
@@ -21,7 +42,7 @@
                         <h3>PDFファイルを選択またはドラッグ&ドロップ</h3>
                         <p>ファイルサイズ: 最大50MB</p>
                         <input type="file" id="fileInput" accept=".pdf" style="display: none;">
-                        <button class="select-btn" onclick="document.getElementById('fileInput').click()">
+                        <button class="btn" onclick="document.getElementById('fileInput').click()">
                             ファイルを選択
                         </button>
                     </div>
@@ -32,7 +53,7 @@
                         <span class="file-name" id="fileName"></span>
                         <span class="file-size" id="fileSize"></span>
                     </div>
-                    <button class="extract-btn" id="extractBtn" onclick="extractBookmarks()">
+                    <button class="btn" id="extractBtn" onclick="extractBookmarks()">
                         🔍 ブックマークを抽出
                     </button>
                 </div>
@@ -54,9 +75,14 @@
                             <div id="bookmarkResult"></div>
                         </div>
                     </div>
-                    <button class="new-file-btn" onclick="resetForm()">
-                        📁 新しいファイルを選択
-                    </button>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="extractPages()" id="extractPagesBtn">
+                            📄 ブックマークページを抽出
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetForm()">
+                            📁 新しいファイルを選択
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -64,7 +90,7 @@
                 <div class="error-content">
                     <h3>❌ エラー</h3>
                     <p id="errorMessage"></p>
-                    <button class="retry-btn" onclick="resetForm()">
+                    <button class="btn btn-secondary" onclick="resetForm()">
                         🔄 再試行
                     </button>
                 </div>
@@ -72,7 +98,16 @@
         </main>
 
         <footer>
-            <p>PDF Bookmark Extractor Tool</p>
+            <div class="footer-content">
+                <div class="footer-text">
+                    <p>&copy; 2025 PDF Bookmark Extractor. All rights reserved.</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#privacy">プライバシー</a>
+                    <a href="#terms">利用規約</a>
+                    <a href="#github">GitHub</a>
+                </div>
+            </div>
         </footer>
     </div>
 
@@ -83,8 +118,17 @@
         const loading = document.getElementById('loading');
         const resultSection = document.getElementById('resultSection');
         const errorSection = document.getElementById('errorSection');
+        const hamburger = document.getElementById('hamburger');
+        const nav = document.getElementById('nav');
 
         let selectedFile = null;
+        let bookmarkPages = [];
+
+        // ハンバーガーメニュー
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            nav.classList.toggle('active');
+        });
 
         // ドラッグ&ドロップ機能
         uploadArea.addEventListener('dragover', (e) => {
@@ -187,6 +231,7 @@
             // 結果を解析して表示
             const lines = result.split('\n');
             let bookmarkInfo = '';
+            bookmarkPages = [];
             
             for (const line of lines) {
                 if (line.includes('ブックマークが設定されているページ数:')) {
@@ -195,7 +240,8 @@
                 } else if (line.includes('ブックマークページ:')) {
                     const pages = line.split(':')[1].trim();
                     if (pages) {
-                        const pageList = pages.split(' ').map(page => `<span class="page-number">${page}</span>`).join(' ');
+                        bookmarkPages = pages.split(' ').map(page => parseInt(page));
+                        const pageList = bookmarkPages.map(page => `<span class="page-number">${page}</span>`).join(' ');
                         bookmarkInfo += `<div class="page-list">📄 ${pageList}</div>`;
                     } else {
                         bookmarkInfo += '<div class="no-bookmarks">ブックマークは設定されていません</div>';
@@ -208,7 +254,63 @@
             }
             
             document.getElementById('bookmarkResult').innerHTML = bookmarkInfo;
+            
+            // ブックマークページ抽出ボタンの表示制御
+            const extractPagesBtn = document.getElementById('extractPagesBtn');
+            if (bookmarkPages.length > 0) {
+                extractPagesBtn.style.display = 'inline-block';
+            } else {
+                extractPagesBtn.style.display = 'none';
+            }
+            
             resultSection.style.display = 'block';
+        }
+
+        function extractPages() {
+            if (!selectedFile || bookmarkPages.length === 0) return;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('pages', bookmarkPages.join(','));
+
+            // ボタンを無効化
+            const extractPagesBtn = document.getElementById('extractPagesBtn');
+            extractPagesBtn.disabled = true;
+            extractPagesBtn.textContent = '📄 抽出中...';
+
+            fetch('/extract_pages', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    throw new Error('ページ抽出に失敗しました');
+                }
+            })
+            .then(blob => {
+                // ファイルをダウンロード
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `bookmarks_${selectedFile.name}`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                // ボタンを復元
+                extractPagesBtn.disabled = false;
+                extractPagesBtn.textContent = '📄 ブックマークページを抽出';
+            })
+            .catch(error => {
+                showError('ページ抽出中にエラーが発生しました: ' + error.message);
+                
+                // ボタンを復元
+                extractPagesBtn.disabled = false;
+                extractPagesBtn.textContent = '📄 ブックマークページを抽出';
+            });
         }
 
         function showError(message) {
@@ -218,6 +320,7 @@
 
         function resetForm() {
             selectedFile = null;
+            bookmarkPages = [];
             fileInput.value = '';
             
             uploadArea.style.display = 'block';

@@ -8,6 +8,7 @@ macOSのプレビュー.appで追加されたブックマーク情報をPDFフ�
 - 🖱️ **ドラッグ&ドロップ**: ファイルをドラッグ&ドロップでアップロード
 - 🔍 **ワンクリック抽出**: ボタン一つでブックマーク情報を抽出
 - 📊 **結果表示**: 抽出されたブックマーク情報を美しく表示
+- 📄 **ページ抽出**: ブックマークのあるページのみを新しいPDFとして抽出
 - 📱 **レスポンシブ**: スマートフォンやタブレットでも使用可能
 
 ## 🚀 デモ
@@ -17,14 +18,21 @@ macOSのプレビュー.appで追加されたブックマーク情報をPDFフ�
 ## 🛠️ 技術スタック
 
 ### バックエンド
-- **Python 3.11** + **Flask 3.1.1** (Webフレームワーク)
+- **Python 3.11** + **Flask 2.3.3** (Webフレームワーク)
 - **qpdf** (PDF解析・変換)
 - **jq** (JSON処理)
+- **Gunicorn** (WSGIサーバー)
 
 ### フロントエンド
 - **HTML5** + **CSS3** + **JavaScript (ES6+)**
-- モダンなUI/UXデザイン
+- **Inter Font** (モダンなタイポグラフィ)
+- シックなダークテーマデザイン
 - レスポンシブ対応
+
+### インフラ
+- **Render** (ホスティング)
+- **Docker** (コンテナ化)
+- **GitHub** (バージョン管理)
 
 ## 📦 インストール
 
@@ -78,6 +86,29 @@ docker build -t pdf-bookmark-extractor .
 docker run -p 8000:8000 pdf-bookmark-extractor
 ```
 
+## 🌐 デプロイ
+
+### Render (推奨)
+
+1. **GitHubリポジトリを準備**
+```bash
+git add .
+git commit -m "Initial commit"
+git push origin main
+```
+
+2. **Renderでデプロイ**
+   - [Render](https://render.com)にサインアップ
+   - "New Web Service"を選択
+   - GitHubリポジトリを連携
+   - 自動デプロイが開始されます
+
+### その他のプラットフォーム
+
+- **Heroku**: `heroku create && git push heroku main`
+- **Railway**: GitHubリポジトリを連携
+- **Vercel**: Pythonアプリケーションとしてデプロイ
+
 ## 📁 プロジェクト構成
 
 ```
@@ -87,6 +118,7 @@ pdf-bookmark-extractor/
 ├── requirements.txt          # Python依存関係
 ├── render.yaml              # Renderデプロイ設定
 ├── Dockerfile               # Docker設定
+├── .gitignore               # Git除外設定
 ├── templates/
 │   └── index.html          # HTMLテンプレート
 ├── static/
@@ -111,6 +143,10 @@ pdf-bookmark-extractor/
 3. **結果確認**
    - 抽出されたブックマーク情報が表示されます
 
+4. **ページ抽出（オプション）**
+   - 「📄 ブックマークページを抽出」ボタンをクリック
+   - ブックマークのあるページのみのPDFがダウンロードされます
+
 ## 🔒 セキュリティ
 
 - ファイル形式検証 (PDFのみ許可)
@@ -132,7 +168,35 @@ pdf-bookmark-extractor/
 - macOSのプレビュー.appで作成されたブックマークのみ対応
 - PDFファイルのみ対応
 - ファイルサイズ50MB以下
-- ローカル環境での実行
+- 無料プランでは月間使用量に制限あり
+
+## 💼 ポートフォリオとしての活用
+
+このプロジェクトは以下の技術スキルをアピールできます：
+
+### フロントエンド
+- モダンなレスポンシブデザイン
+- JavaScript ES6+の活用
+- ドラッグ&ドロップ機能
+- 非同期処理（Fetch API）
+
+### バックエンド
+- Flask Webフレームワーク
+- ファイル処理とセキュリティ
+- 外部コマンド実行（subprocess）
+- RESTful API設計
+
+### インフラ・DevOps
+- Dockerコンテナ化
+- CI/CD（GitHub + Render）
+- 本番環境デプロイ
+- 環境変数管理
+
+### 技術的課題解決
+- PDFファイル解析
+- シェルスクリプト連携
+- バイナリファイル処理
+- エラーハンドリング
 
 ## 🤝 貢献
 
@@ -155,6 +219,7 @@ PDF Bookmark Extractor Team
 - [qpdf](https://github.com/qpdf/qpdf) - PDF処理ライブラリ
 - [Flask](https://flask.palletsprojects.com/) - Webフレームワーク
 - [Render](https://render.com/) - ホスティングプラットフォーム
+- [Inter Font](https://rsms.me/inter/) - タイポグラフィ
 
 ## 📞 サポート
 
