@@ -3,6 +3,7 @@ services:
     name: pdf-bookmark-extractor
     runtime: docker
     dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /
     autoDeploy: true
     plan: free 
