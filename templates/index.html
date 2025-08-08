@@ -57,9 +57,6 @@
                         </div>
                     </div>
                     <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="extractPages()" id="extractPagesBtn">
-                            ブックマークページを抽出
-                        </button>
                         <button class="btn btn-secondary" onclick="resetForm()">
                             新しいファイルを選択
                         </button>
@@ -101,7 +98,6 @@
         const errorSection = document.getElementById('errorSection');
 
         let selectedFile = null;
-        let bookmarkPages = [];
 
         // ドラッグ&ドロップ機能
         uploadArea.addEventListener('dragover', (e) => {
@@ -204,7 +200,6 @@
             // 結果を解析して表示
             const lines = result.split('\n');
             let bookmarkInfo = '';
-            bookmarkPages = [];
             
             for (const line of lines) {
                 if (line.includes('ブックマークが設定されているページ数:')) {
@@ -213,8 +208,7 @@
                 } else if (line.includes('ブックマークページ:')) {
                     const pages = line.split(':')[1].trim();
                     if (pages) {
-                        bookmarkPages = pages.split(' ').map(page => parseInt(page));
-                        const pageList = bookmarkPages.map(page => `<span class="page-number">${page}</span>`).join(' ');
+                        const pageList = pages.split(' ').map(page => `<span class="page-number">${page}</span>`).join(' ');
                         bookmarkInfo += `<div class="page-list">ページ: ${pageList}</div>`;
                     } else {
                         bookmarkInfo += '<div class="no-bookmarks">ブックマークは設定されていません</div>';
@@ -227,63 +221,7 @@
             }
             
             document.getElementById('bookmarkResult').innerHTML = bookmarkInfo;
-            
-            // ブックマークページ抽出ボタンの表示制御
-            const extractPagesBtn = document.getElementById('extractPagesBtn');
-            if (bookmarkPages.length > 0) {
-                extractPagesBtn.style.display = 'inline-block';
-            } else {
-                extractPagesBtn.style.display = 'none';
-            }
-            
             resultSection.style.display = 'block';
-        }
-
-        function extractPages() {
-            if (!selectedFile || bookmarkPages.length === 0) return;
-
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-            formData.append('pages', bookmarkPages.join(','));
-
-            // ボタンを無効化
-            const extractPagesBtn = document.getElementById('extractPagesBtn');
-            extractPagesBtn.disabled = true;
-            extractPagesBtn.textContent = '抽出中...';
-
-            fetch('/extract_pages', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.blob();
-                } else {
-                    throw new Error('ページ抽出に失敗しました');
-                }
-            })
-            .then(blob => {
-                // ファイルをダウンロード
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `bookmarks_${selectedFile.name}`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                
-                // ボタンを復元
-                extractPagesBtn.disabled = false;
-                extractPagesBtn.textContent = 'ブックマークページを抽出';
-            })
-            .catch(error => {
-                showError('ページ抽出中にエラーが発生しました: ' + error.message);
-                
-                // ボタンを復元
-                extractPagesBtn.disabled = false;
-                extractPagesBtn.textContent = 'ブックマークページを抽出';
-            });
         }
 
         function showError(message) {
@@ -293,7 +231,6 @@
 
         function resetForm() {
             selectedFile = null;
-            bookmarkPages = [];
             fileInput.value = '';
             
             uploadArea.style.display = 'block';
