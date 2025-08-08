@@ -22,6 +22,57 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def check_dependencies():
+    """依存関係の確認"""
+    dependencies = {}
+    
+    # qpdfの確認
+    try:
+        result = subprocess.run(['qpdf', '--version'], capture_output=True, text=True, timeout=10)
+        dependencies['qpdf'] = {
+            'installed': result.returncode == 0,
+            'version': result.stdout.strip() if result.returncode == 0 else 'Not found',
+            'error': result.stderr if result.returncode != 0 else None
+        }
+    except Exception as e:
+        dependencies['qpdf'] = {
+            'installed': False,
+            'version': 'Error',
+            'error': str(e)
+        }
+    
+    # jqの確認
+    try:
+        result = subprocess.run(['jq', '--version'], capture_output=True, text=True, timeout=10)
+        dependencies['jq'] = {
+            'installed': result.returncode == 0,
+            'version': result.stdout.strip() if result.returncode == 0 else 'Not found',
+            'error': result.stderr if result.returncode != 0 else None
+        }
+    except Exception as e:
+        dependencies['jq'] = {
+            'installed': False,
+            'version': 'Error',
+            'error': str(e)
+        }
+    
+    # Pythonの確認
+    try:
+        import sys
+        dependencies['python'] = {
+            'installed': True,
+            'version': sys.version,
+            'error': None
+        }
+    except Exception as e:
+        dependencies['python'] = {
+            'installed': False,
+            'version': 'Error',
+            'error': str(e)
+        }
+    
+    return dependencies
+
 def extract_bookmarks_from_pdf(file_path):
     """PDFファイルからブックマーク情報を抽出"""
     try:
@@ -84,6 +135,27 @@ def extract_pages_from_pdf(input_path, pages, output_path):
 def index():
     """メインページ"""
     return render_template('index.html')
+
+@app.route('/health')
+def health():
+    """ヘルスチェックエンドポイント"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': '2025-08-07T00:00:00Z'
+    })
+
+@app.route('/debug/dependencies')
+def debug_dependencies():
+    """依存関係の確認エンドポイント"""
+    dependencies = check_dependencies()
+    return jsonify({
+        'dependencies': dependencies,
+        'environment': {
+            'FLASK_ENV': os.environ.get('FLASK_ENV', 'Not set'),
+            'PORT': os.environ.get('PORT', 'Not set'),
+            'PYTHON_VERSION': os.environ.get('PYTHON_VERSION', 'Not set')
+        }
+    })
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
