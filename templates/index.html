@@ -5,32 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Bookmark Extractor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="header-content">
-                <a href="/" class="logo">
-                    <div class="logo-icon">📖</div>
-                    <div class="logo-text">
-                        <h1>PDF Bookmark Extractor</h1>
-                        <p>macOS Preview Bookmarks</p>
-                    </div>
-                </a>
-                
-                <button class="hamburger" id="hamburger">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                
-                <nav id="nav">
-                    <a href="/">ホーム</a>
-                    <a href="#about">概要</a>
-                    <a href="#help">ヘルプ</a>
-                    <a href="#contact">お問い合わせ</a>
-                </nav>
+            <div class="logo">
+                <h1>PDF Bookmark Extractor</h1>
+                <p>macOS Preview Bookmarks</p>
             </div>
         </header>
 
@@ -38,7 +20,6 @@
             <div class="upload-section">
                 <div class="upload-area" id="uploadArea">
                     <div class="upload-content">
-                        <div class="upload-icon">📄</div>
                         <h3>PDFファイルを選択またはドラッグ&ドロップ</h3>
                         <p>ファイルサイズ: 最大50MB</p>
                         <input type="file" id="fileInput" accept=".pdf" style="display: none;">
@@ -54,7 +35,7 @@
                         <span class="file-size" id="fileSize"></span>
                     </div>
                     <button class="btn" id="extractBtn" onclick="extractBookmarks()">
-                        🔍 ブックマークを抽出
+                        ブックマークを抽出
                     </button>
                 </div>
 
@@ -66,7 +47,7 @@
 
             <div class="result-section" id="resultSection" style="display: none;">
                 <div class="result-content">
-                    <h3>📋 抽出結果</h3>
+                    <h3>抽出結果</h3>
                     <div class="result-info">
                         <div class="file-info-display">
                             <strong>ファイル:</strong> <span id="resultFileName"></span>
@@ -77,10 +58,10 @@
                     </div>
                     <div class="action-buttons">
                         <button class="btn btn-secondary" onclick="extractPages()" id="extractPagesBtn">
-                            📄 ブックマークページを抽出
+                            ブックマークページを抽出
                         </button>
                         <button class="btn btn-secondary" onclick="resetForm()">
-                            📁 新しいファイルを選択
+                            新しいファイルを選択
                         </button>
                     </div>
                 </div>
@@ -88,10 +69,10 @@
 
             <div class="error-section" id="errorSection" style="display: none;">
                 <div class="error-content">
-                    <h3>❌ エラー</h3>
+                    <h3>エラー</h3>
                     <p id="errorMessage"></p>
                     <button class="btn btn-secondary" onclick="resetForm()">
-                        🔄 再試行
+                        再試行
                     </button>
                 </div>
             </div>
@@ -118,17 +99,9 @@
         const loading = document.getElementById('loading');
         const resultSection = document.getElementById('resultSection');
         const errorSection = document.getElementById('errorSection');
-        const hamburger = document.getElementById('hamburger');
-        const nav = document.getElementById('nav');
 
         let selectedFile = null;
         let bookmarkPages = [];
-
-        // ハンバーガーメニュー
-        hamburger.addEventListener('click', () => {
-            hamburger.classList.toggle('active');
-            nav.classList.toggle('active');
-        });
 
         // ドラッグ&ドロップ機能
         uploadArea.addEventListener('dragover', (e) => {
@@ -236,13 +209,13 @@
             for (const line of lines) {
                 if (line.includes('ブックマークが設定されているページ数:')) {
                     const pageCount = line.split(':')[1].trim();
-                    bookmarkInfo += `<div class="page-count">📊 ${pageCount}</div>`;
+                    bookmarkInfo += `<div class="page-count">ブックマークページ数: ${pageCount}</div>`;
                 } else if (line.includes('ブックマークページ:')) {
                     const pages = line.split(':')[1].trim();
                     if (pages) {
                         bookmarkPages = pages.split(' ').map(page => parseInt(page));
                         const pageList = bookmarkPages.map(page => `<span class="page-number">${page}</span>`).join(' ');
-                        bookmarkInfo += `<div class="page-list">📄 ${pageList}</div>`;
+                        bookmarkInfo += `<div class="page-list">ページ: ${pageList}</div>`;
                     } else {
                         bookmarkInfo += '<div class="no-bookmarks">ブックマークは設定されていません</div>';
                     }
@@ -276,7 +249,7 @@
             // ボタンを無効化
             const extractPagesBtn = document.getElementById('extractPagesBtn');
             extractPagesBtn.disabled = true;
-            extractPagesBtn.textContent = '📄 抽出中...';
+            extractPagesBtn.textContent = '抽出中...';
 
             fetch('/extract_pages', {
                 method: 'POST',
@@ -302,14 +275,14 @@
                 
                 // ボタンを復元
                 extractPagesBtn.disabled = false;
-                extractPagesBtn.textContent = '📄 ブックマークページを抽出';
+                extractPagesBtn.textContent = 'ブックマークページを抽出';
             })
             .catch(error => {
                 showError('ページ抽出中にエラーが発生しました: ' + error.message);
                 
                 // ボタンを復元
                 extractPagesBtn.disabled = false;
-                extractPagesBtn.textContent = '📄 ブックマークページを抽出';
+                extractPagesBtn.textContent = 'ブックマークページを抽出';
             });
         }
 
